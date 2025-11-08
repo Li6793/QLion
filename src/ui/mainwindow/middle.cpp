@@ -1,6 +1,12 @@
 #include "middle.h"
 
-
+void Middle::showEvent(QShowEvent *event) {
+    QWidget::showEvent(event);
+    int totalWidth = TopArea->width();
+    m_topleftSplitter->setSizes({static_cast<int>(totalWidth * 0.3), static_cast<int>(totalWidth * 0.7)});
+    int totalHeight = this->height();
+    m_mainSplitter->setSizes({static_cast<int>(totalHeight * 0.7), static_cast<int>(totalHeight * 0.3)});
+}
 
 Middle::Middle(QWidget *parent)
     : QWidget{parent}
@@ -15,15 +21,75 @@ Middle::Middle(QWidget *parent)
     m_mainSplitter->setHandleWidth(2);
     mainLayout->addWidget(m_mainSplitter);
 
+    TopArea=new QWidget(this);
+    TopArea->setStyleSheet("background-color: rgb(30,31,34);");
+    QHBoxLayout* TopLayout=new QHBoxLayout;
+    TopLayout->setContentsMargins(0, 0, 0, 0);
+    TopLayout->setSpacing(0);
+    m_topleftSplitter=new QSplitter(Qt::Horizontal,TopArea);
+    m_topleftSplitter->setHandleWidth(2);
+    TopLayout->addWidget(m_topleftSplitter);
+
+//---------------------------------左上部分-------------------------------------------
+    LeftTop=new QLeftTop(TopArea);
+    //LeftTop->setStyleSheet("background-color: rgb(43,45,48);");
+
+    QVBoxLayout *leftTopLayout = new QVBoxLayout(LeftTop);
+    leftTopLayout->setContentsMargins(0, 0, 0, 0);
+    leftTopLayout->setSpacing(0);
+    m_topleftScrollArea=new QScrollArea();
+    m_topleftScrollArea->setWidgetResizable(true);
+
+    m_topleftScrollArea->setStyleSheet(R"(
+        QScrollArea {
+            background-color: #282c34; /* 深色背景，匹配CLion */
+        }
+        /* 滚动条样式美化（CLion风格：细、深色） */
+        QScrollBar:vertical {
+            border: none;
+            background: #3a3f4b;
+            width: 8px;
+            margin: 0px;
+        }
+        QScrollBar::handle:vertical {
+            background: #5c616c;
+            border-radius: 4px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: #7d848f;
+        }
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            border: none;
+            background: none;
+        }
+    )");
+    m_topleftContentWidget = new QWidget();//---------------------------------------内部容器
+    QVBoxLayout *topleftContentLayout = new QVBoxLayout();//------------------------容器布局
+    topleftContentLayout->setAlignment(Qt::AlignTop);
+
+    QLabel *codeLine = new QLabel(QString("#include <iostream> // 代码行 %1").arg(1));
+    codeLine->setStyleSheet(R"(
+            color: white;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 13px;
+            padding: 2px 8px;
+        )");
+    topleftContentLayout->addWidget(codeLine);
+    m_topleftContentWidget->setLayout(topleftContentLayout);
+    m_topleftScrollArea->setWidget(m_topleftContentWidget);
+
+    leftTopLayout->addWidget(m_topleftScrollArea);
+
+//-----------------------------------------------------------------------------------
+
+
 
     m_topScrollArea = new QScrollArea();
     m_topScrollArea->setWidgetResizable(true);
     m_topScrollArea->setStyleSheet(R"(
         QScrollArea {
-            border: none; /* 去掉默认边框 */
-            background-color: #282c34; /* 深色背景，匹配CLion */
+            background-color: #282c34;
         }
-        /* 滚动条样式美化（CLion风格：细、深色） */
         QScrollBar:vertical {
             border: none;
             background: #3a3f4b;
@@ -102,13 +168,15 @@ Middle::Middle(QWidget *parent)
             outline: none;
         }
     )");
-
+    m_topleftSplitter->addWidget(LeftTop);
+    m_topleftSplitter->addWidget(m_topScrollArea);
+    TopArea->setLayout(TopLayout);
 
     consoleLayout->addWidget(m_consoleOutput);
     consoleLayout->addWidget(m_consoleInput);
 
 
-    m_mainSplitter->addWidget(m_topScrollArea);
+    m_mainSplitter->addWidget(TopArea);
     m_mainSplitter->addWidget(m_consoleWidget);
 
 
@@ -117,15 +185,19 @@ Middle::Middle(QWidget *parent)
     int consoleInitHeight = totalHeight * 0.3;
     m_mainSplitter->setSizes({topInitHeight, consoleInitHeight});
 
+    int middleWidth=TopArea->width();
+    m_topleftSplitter->setSizes({(int)(middleWidth*0.3),(int)(middleWidth*0.7)});
+
 
     m_mainSplitter->setChildrenCollapsible(false);
+    m_topleftSplitter->setChildrenCollapsible(false);
     m_topScrollArea->setMinimumHeight(100);
     m_consoleWidget->setMinimumHeight(80);
 
-
+//background-color: #3a3f4b; /* 分割线默认颜色 */
     m_mainSplitter->setStyleSheet(R"(
         QSplitter::handle:vertical {
-            background-color: #3a3f4b; /* 分割线默认颜色 */
+            background-color: black; /* 分割线默认颜色 */
         }
         QSplitter::handle:vertical:hover {
             background-color: #4d90fe; /* hover时高亮（CLion蓝） */

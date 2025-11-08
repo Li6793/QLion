@@ -23,6 +23,7 @@ public:
 private:
 
     void initUI();
+    //void initLeftandRightTop();
     void initButtonsandQss();
     void connectMenuBarSignals();
 
