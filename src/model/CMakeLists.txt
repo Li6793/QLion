@@ -13,6 +13,11 @@ file(GLOB_RECURSE CORE_SOURCES
 # 2. 编译静态库
 add_library(ModelModule STATIC ${CORE_SOURCES})
 
+set_target_properties(ModelModule PROPERTIES
+    AUTOMOC ON  # 必须启用，否则moc不生成，Q_OBJECT宏相关符号缺失
+    AUTOUIC ON  # 若用.ui文件，需启用
+)
+
 # 3. 链接core模块依赖（如依赖Qt或第三方库，需添加）
 target_link_libraries(ModelModule
     PRIVATE

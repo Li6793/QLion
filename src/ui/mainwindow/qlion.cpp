@@ -1,31 +1,61 @@
 #include "qlion.h"
-#include <QPushButton>
+#include "MenuBar.h"
+#include "middle.h"
+#include <QWidget>
+#include <QMainWindow>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QDebug>
+#include <QStatusBar>
+
 
 QLion::QLion(QWidget *parent)
     : QMainWindow{parent}
 {
-    // 方式 1：纯代码创建 UI（无需 Qt Designer）
-    setWindowTitle("我的应用主窗口");
-    setFixedSize(800, 600);  // 窗口大小
-
-    // 中心部件（QMainWindow 必须有中心部件）
-    QWidget *centralWidget = new QWidget(this);
-    setCentralWidget(centralWidget);
-
-    // 布局和组件
-    QVBoxLayout *layout = new QVBoxLayout(centralWidget);
-    QLabel *label = new QLabel("Hello, 主窗口运行成功！", this);
-    QPushButton *btn = new QPushButton("测试按钮", this);
-
-    layout->addWidget(label, 0, Qt::AlignCenter);
-    layout->addWidget(btn, 0, Qt::AlignCenter);
-
-    // 信号槽（测试按钮点击事件）
-    connect(btn, &QPushButton::clicked, this, []() {
-        qDebug() << "按钮被点击！";
-    });
+    initUI();
+    initButtonsandQss();
+    connectMenuBarSignals();
 }
 
 QLion::~QLion(){}
+
+void QLion::initUI()
+{
+    this->statusBar()->hide();
+    this->setStatusBar(nullptr);
+    setWindowIcon(QIcon(":/icons/images/q.png"));
+    CLion_Bar=new MenuBar(this);
+    this->setMenuBar(CLion_Bar);
+
+    QWidget* centralWidget=new QWidget(this);
+    this->setCentralWidget(centralWidget);
+
+    QHBoxLayout *centralLayout=new QHBoxLayout();
+    centralLayout->setContentsMargins(0, 0, 0, 0);
+    centralLayout->setSpacing(0);
+    FixedLeft=new QWidget(this);
+    middle =new Middle(this);
+    FixedRight=new QWidget(this);
+    FixedLeft->setFixedWidth(50);
+    FixedRight->setFixedWidth(50);
+    centralLayout->addWidget(FixedLeft);
+    centralLayout->addWidget(middle,1);
+    centralLayout->addWidget(FixedRight);
+    centralWidget->setLayout(centralLayout);
+    this->resize(1000,800);
+}
+
+void QLion::initButtonsandQss(){
+    FixedLeft->setStyleSheet("border:2px solid black;background-color:rgb(43,45,48);");
+    FixedRight->setStyleSheet("border:2px solid black;background-color:rgb(43,45,48);");
+    Project=new QPushButton(FixedLeft);
+    Project->setStyleSheet("background-color:transparent;");
+    Project->setIcon(QIcon(":/icons/images/Project.png"));
+    Project->setFixedSize(50,50);
+    Project->move(0,0);
+}
+
+void QLion::connectMenuBarSignals(){
+
+}
+

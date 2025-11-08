@@ -1,46 +1,75 @@
-# 1. 先添加所有模块子目录（每个模块编译成静态库）
 add_subdirectory(core)
 add_subdirectory(ui)
 add_subdirectory(model)
 add_subdirectory(config)
 
-# 2. 编译主程序（main.cpp是入口）
-find_package(Qt6 REQUIRED COMPONENTS Core)
 
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)
+set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
 
-find_package(Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
-
-
-add_executable(MainApp
+set(GLOBAL_RESOURCES
+    ${PROJECT_ROOT}/src/res/resources.qrc
+)
+add_executable(QLion
     main.cpp
-    core/dataprocess/logger.h core/dataprocess/logger.cpp
-    #${CMAKE_SOURCE_DIR}/res/resources.qrc
+    ${GLOBAL_RESOURCES}
 )
 
-# 3. 为主程序链接依赖（Qt库+自定义模块库）
-target_link_libraries(MainApp
+
+target_link_libraries(QLion
     PRIVATE
-        Qt6::Widgets  # Qt界面库
-        Qt6::Core     # Qt核心库
-        Qt6::Gui      # Qt图形库
-        CoreModule    # 自定义core模块（静态库）
-        UIModule      # 自定义ui模块（静态库）
-        ModelModule   # 自定义model模块（静态库）
-        ConfigModule  # 自定义config模块（静态库）
-        # 第三方库（如有，直接写库名，如：libxxx.a 写 xxx）
+        Qt6::Widgets
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Network
+        CoreModule
+        UIModule
+        ModelModule
+        ConfigModule
 )
-target_link_libraries(MainApp PRIVATE Qt6::Core)
-target_link_libraries(MainApp PRIVATE Qt6::Core)
-target_link_libraries(MainApp PRIVATE Qt6::Core)
-target_link_libraries(MainApp PRIVATE Qt6::Core Qt6::Widgets)
 
-# 4. 主程序头文件路径（包含各模块的头文件）
-target_include_directories(MainApp
+target_link_libraries(QLion PRIVATE Qt6::Core Qt6::Widgets)
+
+target_include_directories(QLion
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/core
         ${CMAKE_CURRENT_SOURCE_DIR}/ui
         ${CMAKE_CURRENT_SOURCE_DIR}/model
         ${CMAKE_CURRENT_SOURCE_DIR}/config
 )
+
+function(qt_deploy_target target)
+    if(WIN32)
+        find_program(WINDEPLOYQT_EXE windeployqt
+            HINTS
+                "C:/Qt/6.9.2/msvc2022_64/bin"
+                "${QT_BIN_DIR}"
+                "$ENV{QTDIR}/bin"
+        )
+        if(WINDEPLOYQT_EXE)
+
+            if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR
+               (DEFINED CMAKE_CONFIGURATION_TYPES AND "Debug" IN_LIST CMAKE_CONFIGURATION_TYPES))
+                set(DEPLOY_MODE --debug)
+            else()
+                set(DEPLOY_MODE --release)
+            endif()
+
+            add_custom_command(TARGET ${target} POST_BUILD
+                COMMAND ${WINDEPLOYQT_EXE}
+                    --verbose 1
+                    ${DEPLOY_MODE}
+                    --no-compiler-runtime
+                    --dir $<TARGET_FILE_DIR:${target}>
+                    $<TARGET_FILE:${target}>
+                VERBATIM
+                COMMENT "64位Qt依赖部署完成：$<TARGET_FILE_DIR:${target}>"
+            )
+        else()
+            message(FATAL_ERROR "未找到64位windeployqt，请检查Qt 64位版本是否安装")
+        endif()
+    endif()
+endfunction()
+
+
+qt_deploy_target(${PROJECT_NAME})

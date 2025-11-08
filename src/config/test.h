@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-class test
+class test:public QObject
 {
     Q_OBJECT
 public:

@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-class logger
+class logger:public QObject
 {
     Q_OBJECT
 public:

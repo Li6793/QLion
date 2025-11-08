@@ -1,6 +1,4 @@
-
 #include <QApplication>
-
 #include "mainwindow/QLion.h"
 
 int main(int argc, char *argv[])
